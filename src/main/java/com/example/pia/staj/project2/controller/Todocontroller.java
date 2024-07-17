@@ -7,6 +7,7 @@ import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -80,13 +81,38 @@ public class Todocontroller {
 	@PutMapping("/todos/{id}")  // parantez içerisindeki değeri ben request i isterken çalıştıracağım anlamına geliyor.
 	public ResponseEntity<?> updateById(@PathVariable("id") String id , @RequestBody ToDoDTO todo){
 		// bu method DB den id e göre bir get request i yapıyor.
+		// belli id e sahip todo yu güncellememe yararacak bu method.
+		
 		
 		Optional<ToDoDTO> todoOptional = TodoRepo.findById(id);
 		
 		if (todoOptional.isPresent()) {
-			return new ResponseEntity<>(todoOptional.get(), HttpStatus.OK);
+			ToDoDTO todosave = todoOptional.get();	
+			todosave.setCompleted(todo.getCompleted() != null ? todo.getCompleted() : todosave.getCompleted());
+			todosave.setToDo(todo.getToDo() != null ? todo.getToDo() : todosave.getToDo());
+			todosave.setDescription(todo.getDescription() != null ? todo.getDescription() : todosave.getDescription());
+			todosave.setUpdatedAt(new Date(System.currentTimeMillis()));
+			TodoRepo.save(todosave);
+			return new ResponseEntity<>(todosave, HttpStatus.OK);
+			
+			
 		}else {
 			return new ResponseEntity<>("todo not found by id "+id , HttpStatus.NOT_FOUND);
+		}
+	}
+	
+	
+	@DeleteMapping("/todos/{id}")  // bu anotation lar http request türüne göre hangi methodun çalışmasını seçen yapı.
+	public ResponseEntity<?> deleteById(@PathVariable("id") String id){
+		try {
+			TodoRepo.deleteById(id);
+			return new ResponseEntity<>("succesfult deleted id "+id , HttpStatus.OK);
+			
+			
+		} catch (Exception e) {
+			// TODO: handle exception
+			return new ResponseEntity<>(e.getMessage() , HttpStatus.NOT_FOUND);
+			
 		}
 	}
 	
