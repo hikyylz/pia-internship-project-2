@@ -6,6 +6,7 @@ import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -15,8 +16,13 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.example.pia.staj.project2.exception.TodoCollectionException;
 import com.example.pia.staj.project2.model.ToDoDTO;
 import com.example.pia.staj.project2.repository.ToDoRespository;
+import com.example.pia.staj.project2.service.TodoService;
+import com.example.pia.staj.project2.service.TodoServiceImpl;
+
+import jakarta.validation.ConstraintViolationException;
 
 
 // import edilenler sırasıyla;
@@ -31,32 +37,41 @@ public class Todocontroller {
 	@Autowired
 	private ToDoRespository TodoRepo; 
 	
+	@Autowired
+	private TodoService TodoServ; 
+	
+	
+	
+	
 	@GetMapping("/todos")
 	public ResponseEntity<?> getAllTodos(){
 		// bu method yapılacaklar listebisini repo dan dondürecek olan method. 
 		
-		List<ToDoDTO> todos = TodoRepo.findAll();
-		if(todos.size() > 0) {
-			return new ResponseEntity<List<ToDoDTO>>(todos, HttpStatus.OK);
-		}else {
-			return new ResponseEntity<>("no todos available", HttpStatus.NOT_FOUND);
-		}
+		List<ToDoDTO> todos = TodoServ.getAllTodos();
+		
+		return new ResponseEntity<>(todos, todos.size()>0 ? HttpStatus.OK : HttpStatus.NOT_FOUND);
 		
 	}
+	
+	
 	
 	@PostMapping("/todos")
 	public ResponseEntity<?> createTodo(@RequestBody ToDoDTO todo){
 		// bu method bir todo yaratıyor ve onu todo listesine kaydediyor. Eğer kaydedilme olmuyorsa internel server error veriyor.
+		// işlemi yapmaya çalıştırrken problem çıkarsa yönlendirme işlemleri de burada yapılıyor. 
 		
 		try {
-			todo.setCreatedAt(new Date(System.currentTimeMillis()));
-			TodoRepo.save(todo);
+			TodoServ.createTodo(todo);   // controller class ından servis deki methodları çalıştıracapım sadece ihtiyacım olursa.
 			return new ResponseEntity<ToDoDTO>(todo, HttpStatus.OK);
 			
-		}catch(Exception e) {
-			return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+		}catch(ConstraintViolationException e) {
+			return new ResponseEntity<>(e.getMessage(), HttpStatus.UNPROCESSABLE_ENTITY);
+		}catch (TodoCollectionException e) {
+			return new ResponseEntity<>(e.getMessage(), HttpStatus.CONFLICT);
 		}
 	}
+	
+	
 	
 	@GetMapping("/todos/{id}")  // parantez içerisindeki değeri ben request i isterken çalıştıracağım anlamına geliyor.
 	public ResponseEntity<?> getSingleToDo(@PathVariable("id") String id ){
@@ -75,6 +90,8 @@ public class Todocontroller {
 	// parametrelere anotationların özel anlamları vardır:
 	// @RequestBody : input olarak alınması gerekiyor.
 	// @PathVariable : methodun çalışması için gerekli inputlardan biri.
+	
+	
 	
 	
 	
@@ -106,7 +123,7 @@ public class Todocontroller {
 	public ResponseEntity<?> deleteById(@PathVariable("id") String id){
 		try {
 			TodoRepo.deleteById(id);
-			return new ResponseEntity<>("succesfult deleted id "+id , HttpStatus.OK);
+			return new ResponseEntity<>("succesfully deleted id "+id , HttpStatus.OK);
 			
 			
 		} catch (Exception e) {

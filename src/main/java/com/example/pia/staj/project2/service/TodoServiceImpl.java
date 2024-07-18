@@ -1,6 +1,8 @@
 package com.example.pia.staj.project2.service;
 
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,6 +34,18 @@ public class TodoServiceImpl implements TodoService {
 			todoRepo.save(todo);
 		}
 		
+	}
+
+
+	@Override
+	public List<ToDoDTO> getAllTodos() {
+		List<ToDoDTO> todos = todoRepo.findAll();
+		if(todos.size() > 0) {
+			return todos;
+		}
+		else {
+			return new ArrayList<ToDoDTO>();
+		}
 	}
 
 }
