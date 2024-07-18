@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.repository.query.ReturnedType;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
@@ -29,6 +30,7 @@ import jakarta.validation.ConstraintViolationException;
 // java ile ilgili, projeyle ilgili, benim yazdığım kodlarla ilgili sırasıyla import edilir.
 
 // Controller class ında DB içerisindeki işlemlerin yapıldığı kod bloklarının olduğu file dır.
+// contaroller class ında çok fazla try-catch yapısı kullanılır.
 
 
 @RestController
@@ -77,16 +79,13 @@ public class Todocontroller {
 	public ResponseEntity<?> getSingleToDo(@PathVariable("id") String id ){
 		// bu method DB den id e göre bir get request i yapıyor.
 		
-		Optional<ToDoDTO> todoOptional = TodoRepo.findById(id);
-		
-		if (todoOptional.isPresent()) {
-			return new ResponseEntity<>(todoOptional.get(), HttpStatus.OK);
-		}else {
-			return new ResponseEntity<>("todo not found by id "+id , HttpStatus.NOT_FOUND);
+		try {
+			return new ResponseEntity<>(TodoServ.getATodo(id), HttpStatus.OK);
+		} catch (TodoCollectionException  e) {
+			return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
 		}
+		
 	}
-	
-	
 	// parametrelere anotationların özel anlamları vardır:
 	// @RequestBody : input olarak alınması gerekiyor.
 	// @PathVariable : methodun çalışması için gerekli inputlardan biri.
@@ -101,20 +100,16 @@ public class Todocontroller {
 		// belli id e sahip todo yu güncellememe yararacak bu method.
 		
 		
-		Optional<ToDoDTO> todoOptional = TodoRepo.findById(id);
+		try {
+			TodoServ.updateTodo(id, todo);
+			return new ResponseEntity<>("todo updated with id "+id, HttpStatus.OK);
+			
+		} catch (TodoCollectionException e) {
+			return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
+			
+		} catch (ConstraintViolationException e) {
+			return new ResponseEntity<>(e.getMessage(), HttpStatus.UNPROCESSABLE_ENTITY);
 		
-		if (todoOptional.isPresent()) {
-			ToDoDTO todosave = todoOptional.get();	
-			todosave.setCompleted(todo.getCompleted() != null ? todo.getCompleted() : todosave.getCompleted());
-			todosave.setToDo(todo.getToDo() != null ? todo.getToDo() : todosave.getToDo());
-			todosave.setDescription(todo.getDescription() != null ? todo.getDescription() : todosave.getDescription());
-			todosave.setUpdatedAt(new Date(System.currentTimeMillis()));
-			TodoRepo.save(todosave);
-			return new ResponseEntity<>(todosave, HttpStatus.OK);
-			
-			
-		}else {
-			return new ResponseEntity<>("todo not found by id "+id , HttpStatus.NOT_FOUND);
 		}
 	}
 	
@@ -122,12 +117,10 @@ public class Todocontroller {
 	@DeleteMapping("/todos/{id}")  // bu anotation lar http request türüne göre hangi methodun çalışmasını seçen yapı.
 	public ResponseEntity<?> deleteById(@PathVariable("id") String id){
 		try {
-			TodoRepo.deleteById(id);
+			TodoServ.deleteById(id);
 			return new ResponseEntity<>("succesfully deleted id "+id , HttpStatus.OK);
 			
-			
-		} catch (Exception e) {
-			// TODO: handle exception
+		} catch (TodoCollectionException e) {
 			return new ResponseEntity<>(e.getMessage() , HttpStatus.NOT_FOUND);
 			
 		}

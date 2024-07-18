@@ -13,5 +13,11 @@ public interface TodoService {
 	public void createTodo(ToDoDTO todo) throws TodoCollectionException, ConstraintViolationException;
 	
 	public List<ToDoDTO> getAllTodos();
+	
+	public ToDoDTO getATodo(String id) throws TodoCollectionException;
+	
+	public void updateTodo(String id, ToDoDTO todo) throws TodoCollectionException; 
+	
+	public void deleteById(String id) throws TodoCollectionException; 
 
 }
