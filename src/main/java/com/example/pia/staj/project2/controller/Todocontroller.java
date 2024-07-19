@@ -81,6 +81,7 @@ public class Todocontroller {
 		
 		try {
 			return new ResponseEntity<>(TodoServ.getATodo(id), HttpStatus.OK);
+			
 		} catch (TodoCollectionException  e) {
 			return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
 		}
