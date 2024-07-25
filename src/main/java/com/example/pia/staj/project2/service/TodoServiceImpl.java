@@ -35,7 +35,6 @@ public class TodoServiceImpl implements TodoService {
 			todo.setCreatedAt(new Date(System.currentTimeMillis()));
 			todoRepo.save(todo);
 		}
-		
 	}
 
 

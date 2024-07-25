@@ -76,10 +76,4 @@ public class ToDoDTO {
 	public void setUpdatedAt(Date updatedAt) {
 		this.updatedAt = updatedAt;
 	}
-	
-	 
-	
-	
-	
-
 }

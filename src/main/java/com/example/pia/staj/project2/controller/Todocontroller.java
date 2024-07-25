@@ -40,9 +40,7 @@ public class Todocontroller {
 	private ToDoRespository TodoRepo; 
 	
 	@Autowired
-	private TodoService TodoServ; 
-	
-	
+	private TodoService TodoServ;
 	
 	
 	@GetMapping("/todos")
@@ -52,7 +50,6 @@ public class Todocontroller {
 		List<ToDoDTO> todos = TodoServ.getAllTodos();
 		
 		return new ResponseEntity<>(todos, todos.size()>0 ? HttpStatus.OK : HttpStatus.NOT_FOUND);
-		
 	}
 	
 	
@@ -85,13 +82,10 @@ public class Todocontroller {
 		} catch (TodoCollectionException  e) {
 			return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
 		}
-		
 	}
 	// parametrelere anotationların özel anlamları vardır:
 	// @RequestBody : input olarak alınması gerekiyor.
 	// @PathVariable : methodun çalışması için gerekli inputlardan biri.
-	
-	
 	
 	
 	
@@ -126,9 +120,6 @@ public class Todocontroller {
 			
 		}
 	}
-	
-	
-	
 }
 
 
